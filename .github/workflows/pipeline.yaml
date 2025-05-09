@@ -6,6 +6,8 @@ on:
     branches:
       - main
       - develop
+    tags:
+      - '*'
 
 env:
   IMAGE_NAME: peaw-ui
@@ -37,7 +39,6 @@ jobs:
             echo "image_tag=uat-$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_OUTPUT
             echo "repo=peawdev/k8s-calculator-nonprod" >> $GITHUB_OUTPUT
             echo "path_repo=k8s-calculator-nonprd" >> $GITHUB_OUTPUT
-            echo "path_repo=k8s-calculator-prd" >> $GITHUB_OUTPUT
           elif [[ $GITHUB_REF == "refs/heads/develop" ]]; then
             echo "image_tag=dev-$(git rev-parse --short "$GITHUB_SHA")" >> $GITHUB_OUTPUT
             echo "env=dev" >> $GITHUB_OUTPUT
@@ -106,7 +107,7 @@ jobs:
           for file in $(find ./values -type f -name '*.yaml'); do
             ENV=$(yq e '.env' $file)
             if [ "$ENV" = "${{ needs.build.outputs.env }}" ]; then
-              yq e -i '.api.tag = strenv(IMAGE)' $file
+              yq e -i '.ui.tag = strenv(IMAGE)' $file
             fi
           done
       
@@ -114,7 +115,7 @@ jobs:
         working-directory: ${{ needs.build.outputs.path_repo }}
         run: |-
           git config --global user.email "support@dependabot.com"
-          git config --global user.name "dependabot[bot]"
+          git config --global user.name "iamdevops"
           git add .
           git commit -am "release: ${{ env.IMAGE_NAME }} env: ${{ needs.build.outputs.env }} version: ${{ needs.build.outputs.image_tag }}"
           git push origin main
